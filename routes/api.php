@@ -13,14 +13,10 @@
 |
 */
 
-$router->get('/info', function () use ($router) {
+$router->get('/test', function () use ($router) {
     return $router->app->version();
 });
 
 $router->get('/', function () use ($router) {
-    return view('web');
-});
-
-$router->get('/app', function () use ($router) {
     return view("app");
 });

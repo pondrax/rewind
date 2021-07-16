@@ -18,51 +18,54 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
 
-  plugins: [
-    vue(),
-    //liveReload(__dirname+'/(app|config|views)/**/*.php')
-    // edit according to your source code
-  ],
+	plugins: [
+		vue(),
+		//liveReload(__dirname+'/(app|config|views)/**/*.php')
+		// edit according to your source code
+	],
 
-  // config
-  root: './resources/src',
-  base: process.env.APP_ENV === 'development'
-    ? '/'
-    : '/dist/',
-    //: '/dist/',
+	// config
+	root: './resources/src',
+	base: process.env.APP_ENV === 'development'
+		? '/'
+		: '/dist/',
+		//: '/dist/',
 
-  build: {
-    // output dir for production build
-    outDir: path.resolve(__dirname, './public/dist'),
-    emptyOutDir: true,
+	build: {
+		// output dir for production build
+		outDir: path.resolve(__dirname, './public/dist'),
+		emptyOutDir: true,
 
-    // emit manifest so PHP can find the hashed files
-    manifest: true,
+		// emit manifest so PHP can find the hashed files
+		manifest: true,
 
-    // esbuild target
-    target: 'es2018',
+		// esbuild target
+		target: 'es2018',
 
-    // our entry
-    rollupOptions: {
-      input: '/main.js'
-    }
-  },
+		// our entry
+		rollupOptions: {
+			input: [
+				'/app.js',
+				'/web.js',
+			]
+		}
+	},
 
-  server: {
-    // required to load scripts from custom host
-    cors: true,
+	server: {
+		// required to load scripts from custom host
+		cors: true,
 
-    // we need a strict port to match on PHP side
-    // change freely, but update on PHP to match the same port
-    strictPort: true,
-    port: 3000
-  },
+		// we need a strict port to match on PHP side
+		// change freely, but update on PHP to match the same port
+		strictPort: true,
+		port: 3000
+	},
 
-  // required for in-browser template compilation
-  // https://v3.vuejs.org/guide/installation.html#with-a-bundler
-  resolve: {
-    alias: {
-      vue: 'vue/dist/vue.esm-bundler.js'
-    }
-  }
+	// required for in-browser template compilation
+	// https://v3.vuejs.org/guide/installation.html#with-a-bundler
+	resolve: {
+		alias: {
+			vue: 'vue/dist/vue.esm-bundler.js'
+		}
+	}
 })
