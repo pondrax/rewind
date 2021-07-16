@@ -1,115 +1,50 @@
 <?php
-// Helpers here serve as example. Change to suit your needs.
 
-// For a real-world example check here:
-// https://github.com/wp-bond/bond/blob/master/src/Tooling/Vite.php
-// https://github.com/wp-bond/boilerplate/tree/master/app/themes/boilerplate
+if (!function_exists('vite')) {
+	/**
+	 * Get the path to a versioned Mix file.
+	 *
+	 * @param string $path
+	 * @param string $manifestDirectory
+	 *
+	 * @throws \Exception
+	 *
+	 * @return \Illuminate\Support\HtmlString
+	 */
+	function vite($path)
+	{
+		$port	= isset($_ENV['HMR_PORT']) ? $_ENV['HMR_PORT'] : 3000;
 
-// on the links above there is also example for @vitejs/plugin-legacy
+		$devMode = file_exists(base_path('vitelock'));
+		if($devMode){
+			$url	= "http://localhost:$port";
+			echo "<script type='module' crossorigin src='$url/$path'></script>";
+		}else{
+			//read manifest
+			$file = base_path('public/dist/manifest.json');
+			if(!file_exists($file)){
+				throw new Exception(
+					"No vite serve or production exists"
+				);
+			}
+			$manifest = json_decode(file_get_contents($file),true);
 
-
-// Some dev/prod mechanism would exist in your project
-// Handling manualy here, change to test both cases
-define('IS_DEVELOPMENT', true);
-//define('IS_DEVELOPMENT', false);
-
-
-function vite($entry): string
-{
-    return jsTag($entry)
-        . jsPreloadImports($entry)
-        . cssTag($entry);
-}
-
-
-// Helpers to print tags
-
-function jsTag(string $entry): string
-{
-    $url = IS_DEVELOPMENT
-        ? 'http://localhost:3000/' . $entry
-        : assetUrl($entry);
-
-    if (!$url) {
-        return '';
-    }
-    return '<script type="module" crossorigin src="'
-        . $url
-        . '"></script>';
-}
-
-function jsPreloadImports(string $entry): string
-{
-    if (IS_DEVELOPMENT) {
-        return '';
-    }
-
-    $res = '';
-    foreach (importsUrls($entry) as $url) {
-        $res .= '<link rel="modulepreload" href="'
-            . $url
-            . '">';
-    }
-    return $res;
-}
-
-function cssTag(string $entry): string
-{
-    // not needed on dev, it's inject by Vite
-    if (IS_DEVELOPMENT) {
-        return '';
-    }
-
-    $tags = '';
-    foreach (cssUrls($entry) as $url) {
-        $tags .= '<link rel="stylesheet" href="'
-            . $url
-            . '">';
-    }
-    return $tags;
-}
-
-
-// Helpers to locate files
-
-function getManifest(): array
-{
-    $content = file_get_contents(__DIR__ . '/dist/manifest.json');
-
-    return json_decode($content, true);
-}
-
-function assetUrl(string $entry): string
-{
-    $manifest = getManifest();
-
-    return isset($manifest[$entry])
-        ? '/dist/' . $manifest[$entry]['file']
-        : '';
-}
-
-function importsUrls(string $entry): array
-{
-    $urls = [];
-    $manifest = getManifest();
-
-    if (!empty($manifest[$entry]['imports'])) {
-        foreach ($manifest[$entry]['imports'] as $imports) {
-            $urls[] = '/dist/' . $manifest[$imports]['file'];
-        }
-    }
-    return $urls;
-}
-
-function cssUrls(string $entry): array
-{
-    $urls = [];
-    $manifest = getManifest();
-
-    if (!empty($manifest[$entry]['css'])) {
-        foreach ($manifest[$entry]['css'] as $file) {
-            $urls[] = '/dist/' . $file;
-        }
-    }
-    return $urls;
+			foreach($manifest as $key=>$asset){
+				$slug = dirname($path);
+				if($key == basename($path)){
+					foreach($asset['css'] as $css){
+						$compiled[] =  loadCss($slug . '/' . $css);
+					}
+					$compiled[] =  loadJs($slug . '/' . $asset['file']);
+				}
+			}
+			echo implode(PHP_EOL . "\t", $compiled);
+		}
+	}
+	function loadJs($path){
+		return "<script type='module' src='". url($path) ."'></script>";
+	}
+	function loadCss($path){
+		return "<link rel='stylesheet' href='". url($path) ."'>";
+	}
 }

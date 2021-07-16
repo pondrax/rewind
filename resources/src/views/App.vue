@@ -15,42 +15,33 @@
 					</div>
 					<nav class="mt-6">
 						<div>
-
 							<div v-for="route,group in routes">
-								<div class="w-full text-gray-800 dark:text-white flex items-center px-6 p-2 my-2 bg-gray-100">
+								<div @click="toggleMenuOpen(group)"
+									:class="{
+										'bg-gray-200': menuOpen.includes(group),
+										'border-l-4 border-purple-500': group == menuActive.split('/')[0]
+									}"
+									class="w-full text-gray-800 dark:text-white dark:bg-gray-700 flex items-center px-6 p-2 mt-3 hover:bg-gray-300 dark:hover:bg-gray-800">
 									<component :is="route[0].icon" class="w-5 mr-3"></component>
 									{{ group }}
-									<chevron-down-icon class="w-5 ml-auto"></chevron-down-icon>
+									<chevron-up-icon v-if="menuOpen.includes(group)" class="w-5 ml-auto"></chevron-up-icon>
+									<chevron-down-icon v-else class="w-5 ml-auto"></chevron-down-icon>
 								</div>
-								<div>
-									<div v-for="r in route" class="px-6">
-										{{r.path}}
+								<div v-show="menuOpen.includes(group)">
+									<div v-for="r in route">
+										<router-link :to="r.path + '/' + r.children[0].path"
+											@click="setMenuActive(group + '/' + r.name)"
+											:class="{
+												'bg-gray-100': menuOpen.includes(group),
+												'border-l-4 border-purple-500': r.name == menuActive.split('/')[1]
+											}"
+											class="w-full text-gray-800 dark:text-white dark:bg-gray-700 flex items-center px-6 p-2 hover:bg-gray-200 dark:hover:bg-gray-800">
+											<chevron-right-icon class="w-5 mr-3"></chevron-right-icon>
+											{{ r.name }}
+										</router-link>
 									</div>
 								</div>
 							</div>
-<!--
-							<router-link to="/dashboard/home" class="w-full text-gray-800 dark:text-white flex items-center pl-6 p-2 my-2 transition-colors duration-200 justify-start border-l-4 border-purple-500">
-								<home-icon class="w-5 mr-3"></home-icon>
-								Dashboard -> Dashboard / Home
-							</router-link>
--->
-<!--
-							<router-link to="/manage/cache" class="w-full text-gray-400 flex items-center pl-6 p-2 my-2 transition-colors duration-200 justify-start hover:text-gray-800 border-l-4 border-transparent" href="#">
-								<cog-icon class="w-5 mr-3"></cog-icon>
-								Manage
-								<span class="p-1 ml-4 rounded-lg bg-gray-200 text-gray-400 text-xs">
-									0
-								</span>
-							</router-link>
-							<router-link to="/developer/route" class="w-full text-gray-400 flex items-center pl-6 p-2 my-2 transition-colors duration-200 justify-start hover:text-gray-800 border-l-4 border-transparent">
-								<beaker-icon class="w-5 mr-3"></beaker-icon>
-								Developer -> Developer / Route
-							</router-link>
-							<router-link to="/developer/menu" class="w-full text-gray-400 flex items-center pl-6 p-2 my-2 transition-colors duration-200 justify-start hover:text-gray-800 border-l-4 border-transparent">
-								<beaker-icon class="w-5 mr-3"></beaker-icon>
-								Developer -> Developer / Menu
-							</router-link>
--->
 						</div>
 					</nav>
 				</div>
@@ -119,7 +110,7 @@
 			{
 				path: '/manage',
 				name: 'Manage',
-				name: 'cog-icon',
+				icon: 'cog-icon',
 				children : [
 					{ path: 'cache', name: 'Cache' },
 					{ path: 'job', name: 'Job' },
@@ -128,7 +119,7 @@
 			{
 				path: '/log',
 				name: 'Log',
-				name: 'book-icon',
+				icon: 'book-icon',
 				children : [
 					{ path: 'audit', name: 'Audit Log' },
 					{ path: 'system', name: 'System Log' },
@@ -139,7 +130,7 @@
 			{
 				path: '/developer',
 				name: 'Developer',
-				name: 'baker-icon',
+				icon: 'beaker-icon',
 				children : [
 					{ path: 'route', name: 'Route' },
 					{ path: 'group', name: 'Group' },
@@ -159,7 +150,8 @@
 			return {
 				theme: 'light',
 				sidebarOpen: false,
-				menuOpen: 'Dashboard',
+				menuOpen: ['Dashboard','Manage'],
+				menuActive: 'Dashboard/Dashboard',
 				routes,
 				user:{
 					name: 'Drax',
@@ -186,6 +178,17 @@
 			toggleTheme(){
 				localStorage.theme = this.theme === 'dark' ? 'light' : 'dark';
 				this.setTheme();
+			},
+			toggleMenuOpen(menu){
+				var index = this.menuOpen.indexOf(menu);
+				if(index !== -1){
+					this.menuOpen.splice(index,1);
+				}else{
+					this.menuOpen.push(menu);
+				}
+			},
+			setMenuActive(menu){
+				this.menuActive = menu;
 			}
 		}
 	}
